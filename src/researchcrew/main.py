@@ -6,7 +6,6 @@ from datetime import datetime
 
 from researchcrew.crew import ResearchCrew
 from researchcrew.llm import summarize, structured_reasoning
-from researchcrew.conversation_graph import ConversationGraph
 import os
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
