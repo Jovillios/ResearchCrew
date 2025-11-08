@@ -1,90 +1,102 @@
-from crewai.tools import BaseTool
-from typing import Type
-from pydantic import BaseModel, Field
 import os
-import urllib.request
-import mimetypes
-from pathlib import Path
+import requests
+from crewai.tools import BaseTool
+from pydantic.v1 import BaseModel, Field
+
+# --- Optional Dependencies ---
 try:
-    import PyPDF2
-except Exception:  # pragma: no cover - optional dependency fallback
-    PyPDF2 = None
+    import arxiv
+except ImportError:
+    arxiv = None
 
-class MyCustomToolInput(BaseModel):
-    """Input schema for MyCustomTool."""
-    argument: str = Field(..., description="Description of the argument.")
+try:
+    from PyPDF2 import PdfReader
+except ImportError:
+    PdfReader = None
+# --- ---
 
-class MyCustomTool(BaseTool):
-    name: str = "Name of my tool"
+class KnowledgeIngestionTool(BaseTool):
+    name: str = "Knowledge Ingestion Tool"
     description: str = (
-        "Clear description for what this tool is useful for, your agent will need this information to use it."
+        "Ingests knowledge from various sources (arXiv, URL, PDF). "
+        "The input should be a string specifying the source type and the identifier. "
+        "Formats: 'arxiv:PAPER_ID', 'url:URL_LINK', 'pdf:FILE_PATH'"
     )
-    args_schema: Type[BaseModel] = MyCustomToolInput
 
-    def _run(self, argument: str) -> str:
-        # Implementation goes here
-        return "this is an example of a tool output, ignore it and move along."
-
-
-class DocumentToolInput(BaseModel):
-    """Input schema for DocumentTool."""
-    path: str = Field(..., description="Local file path relative to repo root or a URL")
-    action: str = Field("read", description="Action: 'read' or 'summary'")
-    n_lines: int = Field(5, description="Number of lines for quick summary")
-
-class DocumentTool(BaseTool):
-    name: str = "document_tool"
-    description: str = (
-        "Read local knowledge files (e.g., knowledge/*.txt) or URLs and return the full content "
-        "or a short summary."
-    )
-    args_schema: Type[BaseModel] = DocumentToolInput
-
-    def _run(self, path: str, action: str = "read", n_lines: int = 5) -> str:
+    def _run(self, source_identifier: str) -> str:
         """
-        Simple, dependency-free document reader:
-        - If path starts with http/https, fetch via urllib.
-        - Otherwise, open the file relative to the repository root.
-        - action='summary' returns the first n_lines non-empty lines as bullets.
+        The main execution method for the tool.
+        It parses the input string to determine the source type and identifier,
+        then calls the appropriate method to fetch and process the content.
         """
         try:
-            if path.startswith("http://") or path.startswith("https://"):
-                with urllib.request.urlopen(path, timeout=10) as resp:
-                    raw = resp.read().decode("utf-8", errors="ignore")
+            source_type, identifier = source_identifier.split(':', 1)
+            source_type = source_type.strip().lower()
+            identifier = identifier.strip()
+
+            if source_type == 'arxiv':
+                return self._process_arxiv(identifier)
+            elif source_type == 'url':
+                return self._process_url(identifier)
+            elif source_type == 'pdf':
+                return self._process_pdf(identifier)
             else:
-                # repo root is assumed two levels up from this file
-                repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-                abs_path = os.path.abspath(os.path.join(repo_root, path))
-
-                # If the file is a PDF, try to extract text using PyPDF2
-                p = Path(abs_path)
-                if p.suffix.lower() == ".pdf":
-                    if PyPDF2 is None:
-                        return "ERROR: PyPDF2 is not installed. Please install PyPDF2 to read PDF files."
-                    try:
-                        with open(abs_path, "rb") as f:
-                            reader = PyPDF2.PdfReader(f)
-                            pages = []
-                            for pg in reader.pages:
-                                try:
-                                    pages.append(pg.extract_text() or "")
-                                except Exception:
-                                    # best-effort extraction
-                                    pages.append("")
-                        raw = "\n\n".join(pages)
-                    except Exception as e:
-                        return f"ERROR: failed to read PDF: {e}"
-                else:
-                    with open(abs_path, "r", encoding="utf-8", errors="ignore") as f:
-                        raw = f.read()
+                return "Error: Invalid source type. Use 'arxiv', 'url', or 'pdf'."
+        except ValueError:
+            return "Error: Input string is not in the correct 'source_type:identifier' format."
         except Exception as e:
-            return f"ERROR: {e}"
+            return f"An unexpected error occurred: {e}"
 
-        if action == "read":
-            return raw
-        if action == "summary":
-            lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
-            summary = lines[:max(0, int(n_lines))]
-            return "\n".join(f"- {l}" for l in summary)
-        # fallback: return a limited preview
-        return raw[:2000]
+    def _process_arxiv(self, paper_id: str) -> str:
+        """
+        Fetches and processes the content of a research paper from arXiv.
+        """
+        if arxiv is None:
+            return "Error: 'arxiv' library is not installed. Please run 'pip install arxiv'."
+        try:
+            search = arxiv.Search(id_list=[paper_id])
+            paper = next(search.results())
+            
+            # Concatenate title, authors, and summary for a comprehensive overview
+            content = f"Title: {paper.title}\n"
+            content += f"Authors: {', '.join(author.name for author in paper.authors)}\n\n"
+            content += f"Summary:\n{paper.summary}"
+            
+            return content
+        except StopIteration:
+            return f"Error: No paper found with arXiv ID: {paper_id}"
+        except Exception as e:
+            return f"Error fetching or processing from arXiv: {e}"
+
+    def _process_url(self, url: str) -> str:
+        """
+        Fetches and processes the main text content from a URL.
+        This is a basic implementation and could be enhanced with more sophisticated
+        web scraping libraries like BeautifulSoup for better content extraction.
+        """
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an exception for bad status codes
+            # This is a very basic way to get text. For production, use libraries
+            # like BeautifulSoup to extract the main article text.
+            return response.text
+        except requests.exceptions.RequestException as e:
+            return f"Error fetching from URL: {e}"
+
+    def _process_pdf(self, file_path: str) -> str:
+        """
+        Extracts and processes text content from a local PDF file.
+        """
+        if PdfReader is None:
+            return "Error: 'PyPDF2' library is not installed. Please run 'pip install PyPDF2'."
+        if not os.path.exists(file_path):
+            return f"Error: PDF file not found at path: {file_path}"
+        try:
+            with open(file_path, 'rb') as file:
+                reader = PdfReader(file)
+                text_content = ""
+                for page in reader.pages:
+                    text_content += page.extract_text() + "\n"
+                return text_content
+        except Exception as e:
+            return f"Error reading or processing PDF file: {e}"

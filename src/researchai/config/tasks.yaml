@@ -1,62 +1,101 @@
 # ---------------------------------------------------------------------------
-# TASK DEFINITIONS FOR THE "RESEARCH AGENT" HACKATHON
-# This file outlines the specific assignments for each agent in the crew.
-# Placeholders: {topic} will be dynamically inserted at runtime.
+# TASKS CONFIGURATION
+# ---------------------------------------------------------------------------
+# This file defines the tasks that will be executed by the research crew.
+# Each task is assigned to a specific agent and has a clear description
+# and expected output. The tasks are designed to be executed sequentially,
+# with the output of one task feeding into the next.
 # ---------------------------------------------------------------------------
 
-# Task 1: Initial Knowledge Ingestion and Summarization
-# Assigned to: knowledge_ingestor
-# Goal: To process the source material and create a foundational summary.
-ingestion_task:
+research_task:
   description: >
-    Process the provided research documents on the topic of {topic}.
-    For each document, meticulously extract and summarize the following:
-    1. The core research question or hypothesis.
-    2. The key methodologies used.
-    3. The primary findings and conclusions.
-    Compile these summaries into a clear, consolidated brief.
+    Conduct a comprehensive analysis of the provided research papers and articles
+    on the topic of '{topic}'. Extract the key concepts, methodologies, findings,
+    and any significant data points. Your focus should be on creating a detailed
+    and objective summary of the source material.
   expected_output: >
-    A structured summary document containing the key points (hypothesis,
-    methodology, and findings) for each research paper provided. This will serve
-    as the foundational context for the critical review process.
-  agent: knowledge_ingestor
+    A detailed summary of the research papers, including:
+    - A list of the key concepts and their definitions.
+    - An overview of the methodologies used in each paper.
+    - A bullet-point summary of the main findings and conclusions.
+    - A compilation of any important data points or statistics presented.
+  agent: researcher
 
-# Task 2: Critical Review and Question Generation
-# Assigned to: research_reviewer
-# Goal: To analyze the initial summary, identify weaknesses, and foster deeper reasoning.
 review_task:
   description: >
-    Critically analyze the research brief provided by the Knowledge Ingestor.
-    Your analysis should focus on:
-    - Identifying any potential contradictions or inconsistencies between the findings of different papers.
-    - Questioning the underlying assumptions of the research methodologies.
-    - Highlighting any logical gaps or areas where the conclusions seem unsupported.
-    Your goal is to challenge the initial findings to ensure the final report is robust.
+    Critically review the research summary provided by the Senior Research Analyst.
+    Your objective is to identify any potential biases, logical inconsistencies,
+    or gaps in the analysis. Pose critical questions to challenge the assumptions
+    and interpretations of the findings.
   expected_output: >
-    A bullet-point list of critical questions, identified weaknesses, and potential
-    areas of conflict based on your review of the research brief. This critique
-    will guide the final synthesis.
+    A critical review of the research summary, including:
+    - A list of identified potential biases or logical fallacies.
+    - A series of questions that challenge the assumptions of the research.
+    - An assessment of the strengths and weaknesses of the summarized findings.
+  agent: reviewer
   context:
-    - ingestion_task # This task depends on the output of the ingestion_task
-  agent: research_reviewer
+    - research_task
 
-# Task 3: Synthesis and Insight Generation
-# Assigned to: insight_synthesizer
-# Goal: To create the final "Collective Insight Report" with a new hypothesis.
 synthesis_task:
   description: >
-    Synthesize the initial research brief and the critical review into a final
-    "Collective Insight Report" on {topic}. The report must integrate the findings
-    and the critique to present a balanced view.
-    The final report must include three distinct sections:
-    1.  **Collective Insights:** A summary of what these papers collectively suggest about {topic}.
-    2.  **A New Hypothesis:** Based on the synthesis, propose one novel, testable hypothesis for future research.
-    3.  **Reasoning Trace:** Briefly explain the reasoning that led to the hypothesis, citing the source papers.
+    Synthesize the research summary and the critical review to generate novel insights
+    and a forward-looking perspective. Connect the dots between different findings,
+    identify overarching themes, and formulate a new hypothesis for future exploration.
   expected_output: >
-    A final, well-formatted "Collective Insight Report" in Markdown. The report must
-    be clear, concise, and contain the three required sections (Collective Insights,
-    New Hypothesis, and Reasoning Trace).
-  agent: insight_synthesizer
+    A "Collective Insight Report" that includes:
+    - A synthesis of the key findings from the research.
+    - A discussion of the main themes and patterns that emerged.
+    - A well-defined, testable hypothesis for future research.
+    - Citations or references to the parts of the summary that support the insights.
+  agent: synthesizer
   context:
-    - ingestion_task
-    - review_task # This task depends on the outputs of the previous two tasks
+    - research_task
+    - review_task
+
+# ---------------------------------------------------------------------------
+# OPTIONAL ENHANCEMENT TASKS (Stretch Goals)
+# ---------------------------------------------------------------------------
+# These tasks can be added to the crew for a more in-depth and visually
+# compelling research output.
+# ---------------------------------------------------------------------------
+
+visualization_task:
+  description: >
+    Based on the "Collective Insight Report," create visual representations of the
+    key data and the relationships between concepts. This could include charts,
+    graphs, or diagrams that help to communicate the synthesized insights effectively.
+  expected_output: >
+    A set of data visualizations (e.g., in the form of code snippets for a library
+    like Matplotlib or a description for a tool like D3.js) that clearly illustrate:
+    - The key data points from the research.
+    - The relationships between the synthesized concepts.
+    - A visual representation of the proposed hypothesis.
+  agent: data_visualizer
+  context:
+    - synthesis_task
+
+hypothesis_validation_task:
+  description: >
+    Design an experimental or analytical framework to test the hypothesis
+    generated in the "Collective Insight Report." Outline the steps, required
+    data, and methodologies for validation.
+  expected_output: >
+    A detailed plan for validating the new hypothesis, including:
+    - A step-by-step experimental design or analytical procedure.
+    - A description of the data that would need to be collected or generated.
+    - The statistical methods or analytical techniques to be used.
+  agent: hypothesis_tester
+  context:
+    - synthesis_task
+
+historical_context_task:
+  description: >
+    Provide historical context for the research topic of '{topic}'. Trace the
+    intellectual lineage of the key concepts and debates. This will help to
+    situate the current research within the broader academic conversation.
+  expected_output: >
+    A historical overview of the research topic, including:
+    - A timeline of key publications and discoveries.
+    - A summary of the foundational theories and how they have evolved.
+    - An identification of the major schools of thought and ongoing debates.
+  agent: historian
