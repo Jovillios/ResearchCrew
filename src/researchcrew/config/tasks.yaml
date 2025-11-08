@@ -13,6 +13,13 @@ research_task:
     on the topic of '{topic}'. Extract the key concepts, methodologies, findings,
     and any significant data points. Your focus should be on creating a detailed
     and objective summary of the source material.
+
+    IMPORTANT: If the runner inputs include a key named `{papers_to_review}` that
+    contains a list of URLs, use the "Knowledge Ingestion Tool" to fetch and
+    parse each URL (PDF or webpage). Pass the list of URLs to the tool and base
+    your analysis on the content returned by the tool. Do not attempt to re-download
+    or re-parse the documents yourself; rely on the tool output as the canonical
+    ingested content for this task.
   expected_output: >
     A detailed summary of the research papers, including:
     - A list of the key concepts and their definitions.

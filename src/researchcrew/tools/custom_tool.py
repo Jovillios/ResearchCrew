@@ -1,5 +1,6 @@
 import os
 import io
+import requests
 from crewai.tools import BaseTool
 
 try:
@@ -14,38 +15,59 @@ class KnowledgeIngestionTool(BaseTool):
         "Get knowledge"
     )
 
-    def _run(self) -> str:
+    def _run(self, pdf_urls: list[str]) -> str:
         """
         The main execution method for the tool.
         It extracts papers from `PAPERS_DIR` and return it
         """
+        papers = []
+        for url in pdf_urls:
+            content = self._process_url(url)
+            papers.append(content)
+
         content = ""
-        for filename in os.listdir(os.getenv("PAPERS_DIR")):
-            if filename.endswith(".pdf"):
-                file_path = os.path.join(os.getenv("PAPERS_DIR"), filename)
-                content += "\n--- Start of the paper ---\n"
-                content += self._process_pdf(file_path)
-                content += "\n--- End of the paper ---\n"
+        for paper in papers:
+            content += "\n--- Start of Document ---\n"
+            content += paper
+            content += "--- End of Document ---\n"
 
         return content
         
-    def _process_pdf(self, file_path: str) -> str:
-        """
-        Process a PDF file and extract its text content.
-        """
+    def _parse_pdf_content(self, pdf_file_object) -> str:
+
         if PdfReader is None:
-            return "PyPDF2 is not installed. Please install it to process PDF files."
-
-        if not os.path.exists(file_path):
-            return f"File not found: {file_path}"
-
-        try:
-            reader = PdfReader(file_path)
-            text = ""
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
-            return text
-        except Exception as e:
-            return f"Error processing PDF file: {e}"
+            raise ImportError("PyPDF2 is not installed. Please run 'pip install PyPDF2'.")
         
+        reader = PdfReader(pdf_file_object)
+        text_content = ""
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text_content += page_text + "\n"
+        return text_content
         
+
+    def _process_url(self, url: str) -> str:
+        """
+        Fetches content from a URL. Intelligently handles PDF files.
+        """
+
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
+        response = requests.get(url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        # --- KEY CHANGE: DETECT PDF CONTENT ---
+        content_type = response.headers.get('Content-Type', '')
+        is_pdf = 'application/pdf' in content_type or url.lower().endswith('.pdf')
+
+        if is_pdf:
+            # It's a PDF, so we download and parse its content
+            pdf_bytes = io.BytesIO(response.content)
+            return self._parse_pdf_content(pdf_bytes)
+        else:
+            # It's a regular webpage, return the text content
+            # Ensure we decode properly
+            return response.text
+
+    
+    
