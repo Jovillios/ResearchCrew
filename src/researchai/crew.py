@@ -1,5 +1,7 @@
+from gc import callbacks
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+import os
 
 # Import your custom tool.
 from .tools.custom_tool import KnowledgeIngestionTool
@@ -118,7 +120,9 @@ class ResearchCrew:
             # The agents and tasks are automatically collected from the
             # decorated methods.
             agents=self.agents,
-            tasks=self.tasks
+            tasks=self.tasks,
+            tracing=True,
+            output_log_file=os.getenv("OUTPUT_FILE"),
         )
     
     
