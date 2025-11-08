@@ -3037,7 +3037,7 @@ wheels = [
 ]
 
 [[package]]
-name = "researchai"
+name = "researchcrew"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

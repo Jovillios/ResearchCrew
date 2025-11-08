@@ -4,9 +4,9 @@ import warnings
 
 from datetime import datetime
 
-from researchai.crew import ResearchCrew
-from researchai.llm import summarize, structured_reasoning
-from researchai.conversation_graph import ConversationGraph
+from researchcrew.crew import ResearchCrew
+from researchcrew.llm import summarize, structured_reasoning
+from researchcrew.conversation_graph import ConversationGraph
 import os
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")

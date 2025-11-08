@@ -1,4 +1,4 @@
-from researchai.tools.custom_tool import KnowledgeIngestionTool
+from researchcrew.tools.custom_tool import KnowledgeIngestionTool
 
 
 def test():

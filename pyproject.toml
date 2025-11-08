@@ -1,5 +1,5 @@
 [project]
-name = "researchai"
+name = "ResearchCrew"
 version = "0.1.0"
 description = "researchAI using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
@@ -10,12 +10,12 @@ dependencies = [
 ]
 
 [project.scripts]
-researchai = "researchai.main:run"
-run_crew = "researchai.main:run"
-train = "researchai.main:train"
-replay = "researchai.main:replay"
-test = "researchai.main:test"
-run_with_trigger = "researchai.main:run_with_trigger"
+researchcrew = "researchcrew.main:run"
+run_crew = "researchcrew.main:run"
+train = "researchcrew.main:train"
+replay = "researchcrew.main:replay"
+test = "researchcrew.main:test"
+run_with_trigger = "researchcrew.main:run_with_trigger"
 
 [build-system]
 requires = ["hatchling"]
