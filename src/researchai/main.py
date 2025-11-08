@@ -21,8 +21,8 @@ def run():
     Run the crew.
     """
     inputs = {
-        'topic': 'AI LLMs',
-        'current_year': str(datetime.now().year)
+        'topic': 'AI for Identifying New Drug Targets and Biomarkers',
+        'current_year': str(datetime.now().year),
     }
 
     try:
