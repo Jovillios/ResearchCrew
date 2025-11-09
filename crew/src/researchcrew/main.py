@@ -15,18 +15,18 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 # Replace with inputs you want to test with, it will automatically
 # interpolate any tasks and agents information
 
+inputs = {
+    'topic': 'AI for Identifying New Drug Targets and Biomarkers',
+    'current_year': str(datetime.now().year),
+    'papers_to_review': [
+        "https://wdoqeiyrvqpmigzydwys.supabase.co/storage/v1/object/sign/research-documents/ff4b3d50-d3ca-4217-8778-1b86e12c6c7f/1762638892777_pharmaceuticals-16-00253.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMTEwOTZhMi1hZDI1LTQ1ZTAtYTQxZi1iOGYzYjQyZmI3MjYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXNlYXJjaC1kb2N1bWVudHMvZmY0YjNkNTAtZDNjYS00MjE3LTg3NzgtMWI4NmUxMmM2YzdmLzE3NjI2Mzg4OTI3NzdfcGhhcm1hY2V1dGljYWxzLTE2LTAwMjUzLnBkZiIsImlhdCI6MTc2MjYzODk3MCwiZXhwIjoxNzYzMjQzNzcwfQ.SgaHWmK0feqmI406btXHVpILBaDKgDdfXmQZiLc8E_4"
+    ]
+}
+
 def run():
     """
     Run the crew.
     """
-    inputs = {
-        'topic': 'AI for Identifying New Drug Targets and Biomarkers',
-        'current_year': str(datetime.now().year),
-        'papers_to_review': [
-            "https://wdoqeiyrvqpmigzydwys.supabase.co/storage/v1/object/sign/research-documents/ff4b3d50-d3ca-4217-8778-1b86e12c6c7f/1762638892777_pharmaceuticals-16-00253.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMTEwOTZhMi1hZDI1LTQ1ZTAtYTQxZi1iOGYzYjQyZmI3MjYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXNlYXJjaC1kb2N1bWVudHMvZmY0YjNkNTAtZDNjYS00MjE3LTg3NzgtMWI4NmUxMmM2YzdmLzE3NjI2Mzg4OTI3NzdfcGhhcm1hY2V1dGljYWxzLTE2LTAwMjUzLnBkZiIsImlhdCI6MTc2MjYzODk3MCwiZXhwIjoxNzYzMjQzNzcwfQ.SgaHWmK0feqmI406btXHVpILBaDKgDdfXmQZiLc8E_4"
-        ]
-    }
-
     try:
         ResearchCrew().crew().kickoff(inputs=inputs)
     except Exception as e:
@@ -36,10 +36,6 @@ def train():
     """
     Train the crew for a given number of iterations.
     """
-    inputs = {
-        "topic": "AI LLMs",
-        'current_year': str(datetime.now().year),
-    }
     try:
         ResearchCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
 
@@ -60,10 +56,6 @@ def test():
     """
     Test the crew execution and returns the results.
     """
-    inputs = {
-        "topic": "AI LLMs",
-        "current_year": str(datetime.now().year)
-    }
 
     try:
         ResearchCrew().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
@@ -85,14 +77,15 @@ def run_with_trigger():
     except json.JSONDecodeError:
         raise Exception("Invalid JSON payload provided as argument")
 
-    inputs = {
+    inputs_trigger = {
         "crewai_trigger_payload": trigger_payload,
         "topic": "",
-        "current_year": ""
+        "current_year": "",
+        "papers_to_review": []
     }
 
     try:
-        result = ResearchCrew().crew().kickoff(inputs=inputs)
+        result = ResearchCrew().crew().kickoff(inputs=inputs_trigger)
         return result
     except Exception as e:
         raise Exception(f"An error occurred while running the crew with trigger: {e}")
