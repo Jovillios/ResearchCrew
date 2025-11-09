@@ -1,10 +1,14 @@
-from gc import callbacks
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 import os
 
 # Import your custom tool.
 from .tools.custom_tool import KnowledgeIngestionTool
+
+# Import your custom listener.
+from .listeners.custom_listener import MyCustomListener
+
+listener = MyCustomListener()
 
 @CrewBase
 class ResearchCrew:
@@ -122,7 +126,7 @@ class ResearchCrew:
             agents=self.agents,
             tasks=self.tasks,
             tracing=True,
-            output_log_file=os.getenv("OUTPUT_FILE"),
+            output_log_file=os.getenv("OUTPUT_FILE")
         )
     
     

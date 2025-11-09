@@ -15,21 +15,19 @@ class KnowledgeIngestionTool(BaseTool):
         "Get knowledge"
     )
 
-    def _run(self, pdf_urls: list[str]) -> str:
+    def _run(self) -> str:
         """
         The main execution method for the tool.
         It extracts papers from `PAPERS_DIR` and return it
         """
-        papers = []
-        for url in pdf_urls:
-            content = self._process_url(url)
-            papers.append(content)
-
+        PAPERS_DIR = os.getenv("PAPERS_DIR", "knowledge/papers")
         content = ""
-        for paper in papers:
-            content += "\n--- Start of Document ---\n"
-            content += paper
-            content += "--- End of Document ---\n"
+        for paper_file in os.listdir(PAPERS_DIR):
+            if paper_file.endswith(".pdf"):
+                with open(os.path.join(PAPERS_DIR, paper_file), "rb") as f:
+                    content += "--- Start of Document ---\n"
+                    content += self._parse_pdf_content(f)
+                    content += "--- End of Document ---\n"
 
         return content
         
